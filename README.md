@@ -21,7 +21,7 @@ Here's some projects that depend on _kin-openapi_:
   * [github.com/a-h/rest](https://github.com/a-h/rest) - "Generate OpenAPI 3.0 specifications from Go code without annotations or magic comments"
   * [github.com/Tufin/oasdiff](https://github.com/Tufin/oasdiff) - "A diff tool for OpenAPI Specification 3"
   * [github.com/danielgtaylor/apisprout](https://github.com/danielgtaylor/apisprout) - "Lightweight, blazing fast, cross-platform OpenAPI 3 mock server with validation"
-  * [github.com/deepmap/oapi-codegen](https://github.com/deepmap/oapi-codegen) - "Generate Go client and server boilerplate from OpenAPI 3 specifications"
+  * [github.com/oapi-codegen/oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) - "Generate Go client and server boilerplate from OpenAPI 3 specifications"
   * [github.com/dunglas/vulcain](https://github.com/dunglas/vulcain) - "Use HTTP/2 Server Push to create fast and idiomatic client-driven REST APIs"
   * [github.com/danielgtaylor/restish](https://github.com/danielgtaylor/restish) - "...a CLI for interacting with REST-ish HTTP APIs with some nice features built-in"
   * [github.com/goadesign/goa](https://github.com/goadesign/goa) - "Design-based APIs and microservices in Go"
@@ -130,8 +130,7 @@ func main() {
 
 ## Custom content type for body of HTTP request/response
 
-By default, the library parses a body of the HTTP request and response
-if it has one of the following content types: `"text/plain"` or `"application/json"`.
+By default, the library parses a body of the HTTP request and response of [a few content types](https://github.com/getkin/kin-openapi/blob/6da871e0e170b7637eb568c265c08bc2b5d6e7a3/openapi3filter/req_resp_decoder.go#L1264) e.g. `"text/plain"` or `"application/json"`.
 To support other content types you must register decoders for them:
 
 ```go
@@ -294,6 +293,9 @@ for _, path := range doc.Paths.InMatchingOrder() {
 ```
 
 ## CHANGELOG: Sub-v1 breaking API changes
+
+### v0.131.0
+* No longer `openapi3filter.RegisterBodyDecoder` the `openapi3filter.ZipFileBodyDecoder` by default.
 
 ### v0.129.0
 * `openapi3.Discriminator.Mapping` and `openapi3.OAuthFlow.Scopes` fields went from a `map[string]string` to the new type `StringMap`

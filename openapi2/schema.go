@@ -1,7 +1,9 @@
 package openapi2
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -56,12 +58,65 @@ type Schema struct {
 	Items    *SchemaRef `json:"items,omitempty" yaml:"items,omitempty"`
 
 	// Object
-	Required             []string                      `json:"required,omitempty" yaml:"required,omitempty"`
-	Properties           Schemas                       `json:"properties,omitempty" yaml:"properties,omitempty"`
-	MinProps             uint64                        `json:"minProperties,omitempty" yaml:"minProperties,omitempty"`
-	MaxProps             *uint64                       `json:"maxProperties,omitempty" yaml:"maxProperties,omitempty"`
-	AdditionalProperties openapi3.AdditionalProperties `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
-	Discriminator        string                        `json:"discriminator,omitempty" yaml:"discriminator,omitempty"`
+	Required             []string             `json:"required,omitempty" yaml:"required,omitempty"`
+	Properties           Schemas              `json:"properties,omitempty" yaml:"properties,omitempty"`
+	MinProps             uint64               `json:"minProperties,omitempty" yaml:"minProperties,omitempty"`
+	MaxProps             *uint64              `json:"maxProperties,omitempty" yaml:"maxProperties,omitempty"`
+	AdditionalProperties AdditionalProperties `json:"additionalProperties,omitempty" yaml:"additionalProperties,omitempty"`
+	Discriminator        string               `json:"discriminator,omitempty" yaml:"discriminator,omitempty"`
+}
+
+type AdditionalProperties struct {
+	Has    *bool
+	Schema *SchemaRef
+}
+
+func (addProps AdditionalProperties) MarshalYAML() (any, error) {
+	if x := addProps.Has; x != nil {
+		if *x {
+			return true, nil
+		}
+		return false, nil
+	}
+	if x := addProps.Schema; x != nil {
+		return x.MarshalYAML()
+	}
+	return nil, nil
+}
+
+// MarshalJSON returns the JSON encoding of AdditionalProperties.
+func (addProps AdditionalProperties) MarshalJSON() ([]byte, error) {
+	x, err := addProps.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// UnmarshalJSON sets AdditionalProperties to a copy of data.
+func (addProps *AdditionalProperties) UnmarshalJSON(data []byte) error {
+	var x any
+	if err := json.Unmarshal(data, &x); err != nil {
+		return unmarshalError(err)
+	}
+	switch y := x.(type) {
+	case nil:
+	case bool:
+		addProps.Has = &y
+	case map[string]any:
+		if len(y) == 0 {
+			addProps.Schema = &SchemaRef{Value: &Schema{}}
+		} else {
+			buf := new(bytes.Buffer)
+			json.NewEncoder(buf).Encode(y)
+			if err := json.NewDecoder(buf).Decode(&addProps.Schema); err != nil {
+				return err
+			}
+		}
+	default:
+		return errors.New("cannot unmarshal additionalProperties: value must be either a schema object or a boolean")
+	}
+	return nil
 }
 
 // MarshalJSON returns the JSON encoding of Schema.

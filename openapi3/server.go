@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/url"
 	"sort"
 	"strings"
@@ -52,7 +51,7 @@ func (servers Servers) MatchURL(parsedURL *url.URL) (*Server, []string, string) 
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#server-object
 type Server struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	URL         string                     `json:"url" yaml:"url"` // Required
 	Description string                     `json:"description,omitempty" yaml:"description,omitempty"`
@@ -174,7 +173,7 @@ func (server Server) MatchRawURL(input string) ([]string, string, bool) {
 			} else if ns < 0 {
 				i = np
 			} else {
-				i = int(math.Min(float64(np), float64(ns)))
+				i = min(np, ns)
 			}
 			if i < 0 {
 				i = len(input)
@@ -237,7 +236,7 @@ func (server *Server) Validate(ctx context.Context, opts ...ValidationOption) (e
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#server-variable-object
 type ServerVariable struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"origin,omitempty" yaml:"origin,omitempty"`
+	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
 
 	Enum        []string `json:"enum,omitempty" yaml:"enum,omitempty"`
 	Default     string   `json:"default,omitempty" yaml:"default,omitempty"`
